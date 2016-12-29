@@ -1,0 +1,5 @@
+build/
+dist/
+rgrab.egg-info/
+__pycache__/
+rgrab-*/
