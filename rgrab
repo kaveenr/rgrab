@@ -1,44 +1,41 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import urllib,re,json,os,sys
-
-null = ""
-true = True
-false = False
-
-import argparse
+from urllib import urlretrieve
+from os import path
+from json import loads
+from sys import exit
+from argparse import ArgumentParser
 
 def download_image(url,sub):
-	name  = url.split('/')[-1]
-	nameF = sub+"_"+name
+    name = url.split('/')[-1]
+    nameF = "{sub}_{name}".format(sub=sub, name=name)
 
-	if os.path.isfile(nameF):
-		print("Already Downloaded Skipping")
-	else:
-		urllib.urlretrieve(url,sub+"_"+name)
-		print("100% " + name)
-
+    if path.isfile(nameF):
+	    print("Already Downloaded Skipping")
+    else:
+	    urllib.urlretrieve(url, "{sub}_{url}".format(sub=sub, url=url))
+        print("100% {name}".format(name=name))
 
 def download(name,contin):
     try:
-        website = urllib.urlopen("http://www.reddit.com/r/"+name+"/.json?count="+str(contin))
-    	jsonb = json.loads(website.read())
+        website = urllib.urlopen("http://www.reddit.com/r/{subreddit}/.json?count={count}".format(subreddit=name, count=str(contin)))
+        jsonb = loads(website.read())
     except:
         print("Data retrival failed")
-        sys.exit()
+        exit()
 
     links = []
 
     for i in jsonb['data']['children']:
-		links.append(i['data']['url'])
+        links.append(i['data']['url'])
 
     for i in links:
 	       if i[(len(i)-4):(len(i))].upper() in ['.JPG','.PNG','.GIF']:
 			            download_image(i,name)
 
 def initParser():
-    parser = argparse.ArgumentParser(description="Simple Reddit image downloader")
+    parser = ArgumentParser(description="Simple Reddit image downloader")
 
     parser.add_argument('-n','--name', action='store', dest='subreddit',
                         help='sub-reddit name', required=True)
