@@ -1,48 +1,67 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from urllib import urlretrieve
-from os import path
+from urllib import urlretrieve,urlopen
+from os import path,chdir
 from json import loads
 from sys import exit
 from argparse import ArgumentParser
 
-def download_image(url,sub):
-    name = url.split('/')[-1]
-    nameF = "{sub}_{name}".format(sub=sub, name=name)
+def download_image(url,sub,destination):
+	name  = url.split('/')[-1]
+	nameF = sub+"_"+name
 
-    if path.isfile(nameF):
-	    print("Already Downloaded Skipping")
-    else:
-	    urllib.urlretrieve(url, "{sub}_{url}".format(sub=sub, url=url))
-        print("100% {name}".format(name=name))
+        if destination:
+            try:
+                chdir(destination)
+            except:
+                print("Can't access directory. Verify path")
+                exit()
 
-def download(name,contin):
+            if path.isfile(nameF):
+                print("Already Downloaded Skipping")
+            else:
+                urlretrieve(url, sub + "_" + name)
+	        print("100% " + name)
+        else:
+            if path.isfile(nameF):
+                print("Already Downloaded Skipping")
+            else:
+                urlretrieve(url, sub + "_" + name)
+                print("100% " + name)
+
+def download(name,contin,destination):
     try:
-        website = urllib.urlopen("http://www.reddit.com/r/{subreddit}/.json?count={count}".format(subreddit=name, count=str(contin)))
+        website = urlopen("http://www.reddit.com/r/{subreddit}/.json?count={count}".format(subreddit=name, count=str(contin)))
         jsonb = loads(website.read())
     except:
-        print("Data retrival failed")
+        print("Data retrieval failed")
         exit()
 
     links = []
 
-    for i in jsonb['data']['children']:
-        links.append(i['data']['url'])
+    try:
+        for i in jsonb['data']['children']:
+           links.append(i['data']['url'])
+    except:
+        print("Reddit connection error")
+        exit()
 
     for i in links:
-	       if i[(len(i)-4):(len(i))].upper() in ['.JPG','.PNG','.GIF']:
-			            download_image(i,name)
+        if i[(len(i)-4):(len(i))].upper() in ['.JPG','.PNG','.GIF']:
+	    download_image(i,name,destination)
 
 def initParser():
     parser = ArgumentParser(description="Simple Reddit image downloader")
 
     parser.add_argument('-n','--name', action='store', dest='subreddit',
                         help='sub-reddit name', required=True)
+    parser.add_argument('-d', action='store', dest='destination',
+                        help='Download destination path', required=False)
     parser.add_argument('-c','--continue', action='store', dest='count',
                         help='continue count', required=False, default= 0)
     results = parser.parse_args()
-    download(results.subreddit,results.count)
+    download(results.subreddit,results.count,results.destination)
 
 if __name__ == "__main__":
     initParser()
