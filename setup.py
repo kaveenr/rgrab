@@ -5,7 +5,7 @@ except ImportError:
 	from distutils.core import setup
 setup(
     name="rgrab",
-    version="0.1",
+    version="0.2",
     description="Download Images form reddit sub-reddits",
     keywords=["Reddit", "Image", "Download"],
     author="KaveenR",
